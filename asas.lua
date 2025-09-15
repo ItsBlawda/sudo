@@ -192,7 +192,8 @@ local rocks = {
     "Muscle King Mountain",
     "Rock OF Legends",
     "Frozen Rock",
-    "Inferno Rock"
+    "Inferno Rock",
+    "none"
 }
 
 local selectedRock = nil
@@ -204,14 +205,13 @@ local function getPunchTool()
 	return backpack:FindFirstChild(TOOL_NAME) or (character and character:FindFirstChild(TOOL_NAME))
 end
 
--- Helper to get hit part from a model
+-- Helper to get the MeshPart named "Rock" inside a model
 local function getHitPart(modelName)
 	local model = workspace.machinesFolder:FindFirstChild(modelName)
 	if not model then return nil end
-	for _, part in ipairs(model:GetDescendants()) do
-		if part:IsA("BasePart") then
-			return part
-		end
+	local rockPart = model:FindFirstChild("Rock")
+	if rockPart and rockPart:IsA("BasePart") then
+		return rockPart
 	end
 	return nil
 end
@@ -224,17 +224,16 @@ local function startPunching(rockName)
 	punchingLoop = task.spawn(function()
 		while rockPunchEnabled and selectedRock == rockName do
 			local tool = getPunchTool()
-			if not tool then
-				local bpTool = backpack:FindFirstChild(TOOL_NAME)
-				if bpTool and character then
-					character.Humanoid:EquipTool(bpTool)
-					tool = character:FindFirstChild(TOOL_NAME)
-				end
+			if not tool and backpack:FindFirstChild(TOOL_NAME) and character then
+				character.Humanoid:EquipTool(backpack[TOOL_NAME])
+				tool = character:FindFirstChild(TOOL_NAME)
 			end
 			if tool then
 				local hitPart = getHitPart(rockName)
 				if hitPart then
 					tool:Activate()
+				else
+					warn("Hit part 'Rock' not found in:", rockName)
 				end
 			end
 			task.wait(0.3)
@@ -254,7 +253,7 @@ end
 glitch:Dropdown({
 	Text = "Choose Rock",
 	List = rocks,
-	Default = "Ancient Jungle Rock",
+	Default = nil,
 	ChangeTextOnPick = true,
 	Flag = "RockChoice",
 	Callback = function(option)
@@ -273,7 +272,7 @@ glitch:Toggle({
 	Callback = function(Value)
 		rockPunchEnabled = Value
 		if Value then
-			if selectedRock then
+			if selectedRock and selectedRock ~= "none" then
 				startPunching(selectedRock)
 				warn("Rock Auto Punch enabled for " .. selectedRock)
 			else
@@ -289,7 +288,7 @@ glitch:Toggle({
 -- Respawn handling
 player.CharacterAdded:Connect(function(char)
 	character = char
-	if rockPunchEnabled and selectedRock then
+	if rockPunchEnabled and selectedRock and selectedRock ~= "none" then
 		task.wait(0.1)
 		startPunching(selectedRock)
 	end
