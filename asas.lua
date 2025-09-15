@@ -189,13 +189,14 @@ if player.Character then
 end
 -- Fast Punch Toggle
 
--- Auto Rock Punch via RemoteEvent
+-- Auto Rock Punch (Luna-style)
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 
--- Remote for punching rocks
-local guiDamageEvent = ReplicatedStorage:WaitForChild("rEvents"):WaitForChild("guiDamageEvent")
+-- Remotes
+local muscleEvent = player:WaitForChild("muscleEvent") -- Player punch
+local guiDamageEvent = ReplicatedStorage:WaitForChild("rEvents"):WaitForChild("guiDamageEvent") -- Punch trails & rock punch
 
 -- Rock list
 local rocks = {
@@ -208,29 +209,36 @@ local rocks = {
 }
 
 local selectedRock = nil
-local punchingLoop = nil
 local rockPunchEnabled = false
+local punchingLoop = nil
 
 -- Start punching loop
 local function startRockPunch()
     if punchingLoop and coroutine.status(punchingLoop) ~= "dead" then
         task.cancel(punchingLoop)
     end
+
     punchingLoop = task.spawn(function()
         while rockPunchEnabled and selectedRock and selectedRock ~= "none" do
-            local rockModel = workspace.machinesFolder:FindFirstChild(selectedRock)
-            if rockModel then
-                local rockPart = rockModel:FindFirstChild("Rock")
-                if rockPart then
-                    task.defer(function()
-                        -- Fire the remote to punch the rock
-                        guiDamageEvent:FireServer("rockPunch", rockPart)
-                    end)
-                else
-                    warn("Rock part not found:", selectedRock)
+            local Character = player.Character
+            if Character then
+                local leftTrail = Character:FindFirstChild("LeftHand") and Character.LeftHand:FindFirstChild("handTrail")
+                local rightTrail = Character:FindFirstChild("RightHand") and Character.RightHand:FindFirstChild("handTrail")
+                local rockModel = workspace.machinesFolder:FindFirstChild(selectedRock)
+                local rockPart = rockModel and rockModel:FindFirstChild("Rock")
+                
+                if leftTrail and rightTrail and rockPart then
+                    -- Fire player punches
+                    muscleEvent:FireServer("punch", "rightHand")
+                    muscleEvent:FireServer("punch", "leftHand")
+
+                    -- Fire punch trails for visual effect
+                    firesignal(guiDamageEvent.OnClientEvent, "punchTrails", leftTrail, rightTrail, "leftHand")
+                    firesignal(guiDamageEvent.OnClientEvent, "punchTrails", leftTrail, rightTrail, "rightHand")
+
+                    -- Fire rock punch
+                    firesignal(guiDamageEvent.OnClientEvent, "rockPunch", rockPart, leftTrail, rightTrail, "leftHand")
                 end
-            else
-                warn("Rock model not found:", selectedRock)
             end
             task.wait(0.01) -- ultra-fast 10ms loop
         end
@@ -245,7 +253,7 @@ local function stopRockPunch()
     end
 end
 
--- Dropdown for selecting rock
+-- Dropdown to select rock
 glitch:Dropdown({
     Text = "Choose Rock",
     List = rocks,
