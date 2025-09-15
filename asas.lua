@@ -39,7 +39,7 @@ local glitch2 = Glitch:Section({
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local backpack = player:WaitForChild("Backpack")
-local punch = "Punch"
+local TOOL_NAME = "Punch"
 local character
 
 -- -------------------------------
@@ -49,6 +49,10 @@ local function equipTool(tool)
 	if tool and tool.Parent == backpack and character and character:FindFirstChild("Humanoid") then
 		character.Humanoid:EquipTool(tool)
 	end
+end
+
+local function getPunchTool()
+	return backpack:FindFirstChild(TOOL_NAME) or (character and character:FindFirstChild(TOOL_NAME))
 end
 
 -- -------------------------------
@@ -62,16 +66,18 @@ function AutoPunch:start()
 	if self.loop and coroutine.status(self.loop) ~= "dead" then return end
 	self.loop = task.spawn(function()
 		while self.enabled do
-			if character then
-				local tool = character:FindFirstChild(punch) or backpack:FindFirstChild(punch)
-				if tool and tool.Parent == backpack then
+			local tool = getPunchTool()
+			if tool then
+				-- Equip if needed
+				if tool.Parent == backpack and character then
 					equipTool(tool)
 				end
-				if tool then
+				-- Activate punch asynchronously
+				task.defer(function()
 					tool:Activate()
-				end
+				end)
 			end
-			task.wait(0.3)
+			task.wait(0.01) -- 10ms auto-clicker
 		end
 	end)
 end
@@ -90,6 +96,7 @@ end
 player.CharacterAdded:Connect(function(char)
 	character = char
 	if AutoPunch.enabled then
+		task.wait(0.1)
 		AutoPunch:start()
 	end
 end)
@@ -98,6 +105,9 @@ if player.Character then
 	character = player.Character
 end
 
+-- -------------------------------
+-- UI Toggle
+-- -------------------------------
 farming:Toggle({
 	Text = "Auto Punch",
 	Default = false,
@@ -169,7 +179,7 @@ farming:Toggle({
 player.CharacterAdded:Connect(function(char)
 	character = char
 	if fastPunchEnabled then
-		task.wait(0.1)
+		task.wait(0.01)
 		applyFastPunch()
 	end
 end)
@@ -207,39 +217,49 @@ end
 
 -- Helper to get the MeshPart named "Rock" inside a model
 local function getHitPart(modelName)
-	local model = workspace.machinesFolder:FindFirstChild(modelName)
-	if not model then return nil end
-	local rockPart = model:FindFirstChild("Rock")
-	if rockPart and rockPart:IsA("BasePart") then
-		return rockPart
-	end
-	return nil
+    local model = workspace.machinesFolder:FindFirstChild(modelName)
+    if model then
+        local rockPart = model:FindFirstChild("Rock") -- must be MeshPart
+        if rockPart and rockPart:IsA("BasePart") then
+            return rockPart
+        end
+    end
+    return nil
 end
 
--- Start punching loop
-local function startPunching(rockName)
-	if punchingLoop and coroutine.status(punchingLoop) ~= "dead" then
-		task.cancel(punchingLoop)
-	end
-	punchingLoop = task.spawn(function()
-		while rockPunchEnabled and selectedRock == rockName do
-			local tool = getPunchTool()
-			if not tool and backpack:FindFirstChild(TOOL_NAME) and character then
-				character.Humanoid:EquipTool(backpack[TOOL_NAME])
-				tool = character:FindFirstChild(TOOL_NAME)
-			end
-			if tool then
-				local hitPart = getHitPart(rockName)
-				if hitPart then
-					tool:Activate()
-				else
-					warn("Hit part 'Rock' not found in:", rockName)
-				end
-			end
-			task.wait(0.3)
-		end
-	end)
+local function startRockPunch()
+    if punchingLoop and coroutine.status(punchingLoop) ~= "dead" then
+        task.cancel(punchingLoop)
+    end
+    punchingLoop = task.spawn(function()
+        while rockPunchEnabled and selectedRock and selectedRock ~= "none" do
+            local tool = getPunchTool()
+            if tool then
+                -- Equip if needed
+                if tool.Parent == backpack and character then
+                    character.Humanoid:EquipTool(tool)
+                end
+
+                -- Apply Fast Punch
+                if tool:FindFirstChild("attackTime") then
+                    tool.attackTime.Value = 0
+                end
+
+                local hitPart = getHitPart(selectedRock)
+                if hitPart then
+                    task.defer(function()
+                        tool:Activate() -- reach punch without moving
+                    end)
+                else
+                    warn("Rock MeshPart not found:", selectedRock)
+                end
+            end
+            task.wait(0.01)
+        end
+    end)
 end
+
+
 
 -- Stop punching
 local function stopPunching()
