@@ -289,7 +289,7 @@ glitch:Toggle({
         if not Value and rockModel then
             local rockPart = rockModel:FindFirstChild("Rock")
             if rockPart then
-                rockPart.Size = Vector3.new(5,5,5)   -- reset size
+                rockPart.Size = Vector3.new(2,1,1)   -- reset size
                 rockPart.Transparency = 0
                 rockPart.CanCollide = true
                 rockPart.Anchored = false
