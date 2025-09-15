@@ -215,51 +215,50 @@ local function getPunchTool()
 	return backpack:FindFirstChild(TOOL_NAME) or (character and character:FindFirstChild(TOOL_NAME))
 end
 
--- Helper to get the MeshPart named "Rock" inside a model
-local function getHitPart(modelName)
-    local model = workspace.machinesFolder:FindFirstChild(modelName)
-    if model then
-        local rockPart = model:FindFirstChild("Rock") -- must be MeshPart
-        if rockPart and rockPart:IsA("BasePart") then
-            return rockPart
-        end
-    end
-    return nil
+-- Helper to get all BaseParts inside a model
+local function getHitParts(modelName)
+	local model = workspace.machinesFolder:FindFirstChild(modelName)
+	if not model then return {} end
+	local parts = {}
+	for _, part in ipairs(model:GetDescendants()) do
+		if part:IsA("BasePart") then
+			table.insert(parts, part)
+		end
+	end
+	return parts
 end
 
+-- Start punching loop
 local function startRockPunch()
-    if punchingLoop and coroutine.status(punchingLoop) ~= "dead" then
-        task.cancel(punchingLoop)
-    end
-    punchingLoop = task.spawn(function()
-        while rockPunchEnabled and selectedRock and selectedRock ~= "none" do
-            local tool = getPunchTool()
-            if tool then
-                -- Equip if needed
-                if tool.Parent == backpack and character then
-                    character.Humanoid:EquipTool(tool)
-                end
+	if punchingLoop and coroutine.status(punchingLoop) ~= "dead" then
+		task.cancel(punchingLoop)
+	end
+	punchingLoop = task.spawn(function()
+		while rockPunchEnabled and selectedRock and selectedRock ~= "none" do
+			local tool = getPunchTool()
+			if tool then
+				-- Equip if needed
+				if tool.Parent == backpack and character then
+					character.Humanoid:EquipTool(tool)
+				end
 
-                -- Apply Fast Punch
-                if tool:FindFirstChild("attackTime") then
-                    tool.attackTime.Value = 0
-                end
+				-- Apply Fast Punch if available
+				if tool:FindFirstChild("attackTime") then
+					tool.attackTime.Value = 0
+				end
 
-                local hitPart = getHitPart(selectedRock)
-                if hitPart then
-                    task.defer(function()
-                        tool:Activate() -- reach punch without moving
-                    end)
-                else
-                    warn("Rock MeshPart not found:", selectedRock)
-                end
-            end
-            task.wait(0.01)
-        end
-    end)
+				-- Get all hit parts in the selected rock
+				local hitParts = getHitParts(selectedRock)
+				for _, hitPart in ipairs(hitParts) do
+					task.defer(function()
+						tool:Activate() -- punch each part asynchronously
+					end)
+				end
+			end
+			task.wait(0.01) -- ultra-fast, 10ms auto-clicker
+		end
+	end)
 end
-
-
 
 -- Stop punching
 local function stopPunching()
@@ -280,7 +279,7 @@ glitch:Dropdown({
 		selectedRock = option
 		warn("Selected rock:", option)
 		if rockPunchEnabled then
-			startRockPunch(option)
+			startRockPunch() -- restart loop on new rock
 		end
 	end
 })
@@ -293,7 +292,7 @@ glitch:Toggle({
 		rockPunchEnabled = Value
 		if Value then
 			if selectedRock and selectedRock ~= "none" then
-				startRockPunch(selectedRock)
+				startRockPunch()
 				warn("Rock Auto Punch enabled for " .. selectedRock)
 			else
 				warn("No rock selected!")
@@ -310,7 +309,7 @@ player.CharacterAdded:Connect(function(char)
 	character = char
 	if rockPunchEnabled and selectedRock and selectedRock ~= "none" then
 		task.wait(0.1)
-		startPunching(selectedRock)
+		startRockPunch()
 	end
 end)
 
