@@ -280,7 +280,7 @@ glitch:Dropdown({
 		selectedRock = option
 		warn("Selected rock:", option)
 		if rockPunchEnabled then
-			startPunching(option) -- restart loop on new rock
+			startRockPunch(option)
 		end
 	end
 })
@@ -293,7 +293,7 @@ glitch:Toggle({
 		rockPunchEnabled = Value
 		if Value then
 			if selectedRock and selectedRock ~= "none" then
-				startPunching(selectedRock)
+				startRockPunch(selectedRock)
 				warn("Rock Auto Punch enabled for " .. selectedRock)
 			else
 				warn("No rock selected!")
