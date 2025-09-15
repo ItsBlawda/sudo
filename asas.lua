@@ -189,16 +189,12 @@ if player.Character then
 end
 -- Fast Punch Toggle
 
--- Auto Rock Punch
+-- Auto Rock Punch via RemoteEvent
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
 local player = Players.LocalPlayer
-local punchingLoop = nil
-local rockPunchEnabled = false
-local selectedRock = nil
 
--- Remote
+-- Remote for punching rocks
 local guiDamageEvent = ReplicatedStorage:WaitForChild("rEvents"):WaitForChild("guiDamageEvent")
 
 -- Rock list
@@ -211,78 +207,91 @@ local rocks = {
     "none"
 }
 
+local selectedRock = nil
+local punchingLoop = nil
+local rockPunchEnabled = false
+
 -- Start punching loop
 local function startRockPunch()
-	if punchingLoop and coroutine.status(punchingLoop) ~= "dead" then
-		task.cancel(punchingLoop)
-	end
-	punchingLoop = task.spawn(function()
-		while rockPunchEnabled and selectedRock and selectedRock ~= "none" do
-			local rockModel = workspace.machinesFolder:FindFirstChild(selectedRock)
-			if rockModel then
-				local rockPart = rockModel:FindFirstChild("Rock")
-				if rockPart then
-					task.defer(function()
-						-- Fire the remote as if the client punched it
-						firesignal(guiDamageEvent.OnClientEvent, "rockPunch", rockPart)
-					end)
-				end
-			end
-			task.wait(0.01) -- 10ms loop
-		end
-	end)
+    if punchingLoop and coroutine.status(punchingLoop) ~= "dead" then
+        task.cancel(punchingLoop)
+    end
+    punchingLoop = task.spawn(function()
+        while rockPunchEnabled and selectedRock and selectedRock ~= "none" do
+            local rockModel = workspace.machinesFolder:FindFirstChild(selectedRock)
+            if rockModel then
+                local rockPart = rockModel:FindFirstChild("Rock")
+                if rockPart then
+                    task.defer(function()
+                        -- Fire the remote to punch the rock
+                        guiDamageEvent:FireServer("rockPunch", rockPart)
+                    end)
+                else
+                    warn("Rock part not found:", selectedRock)
+                end
+            else
+                warn("Rock model not found:", selectedRock)
+            end
+            task.wait(0.01) -- ultra-fast 10ms loop
+        end
+    end)
 end
 
--- Stop punching
+-- Stop punching loop
 local function stopRockPunch()
-	if punchingLoop then
-		task.cancel(punchingLoop)
-		punchingLoop = nil
-	end
+    if punchingLoop then
+        task.cancel(punchingLoop)
+        punchingLoop = nil
+    end
 end
 
 -- Dropdown for selecting rock
 glitch:Dropdown({
-	Text = "Choose Rock",
-	List = rocks,
-	Default = nil,
-	ChangeTextOnPick = true,
-	Flag = "RockChoice",
-	Callback = function(option)
-		selectedRock = option
-		warn("Selected rock:", option)
-		if rockPunchEnabled then
-			startRockPunch()
-		end
-	end
+    Text = "Choose Rock",
+    List = rocks,
+    Default = nil,
+    ChangeTextOnPick = true,
+    Flag = "RockChoice",
+    Callback = function(option)
+        selectedRock = option
+        warn("Selected rock:", option)
+        if rockPunchEnabled then
+            startRockPunch()
+        end
+    end
 })
 
--- Toggle for enabling/disabling punching
+-- Toggle for enabling/disabling auto rock punch
 glitch:Toggle({
-	Text = "Rock Auto Punch",
-	Default = false,
-	Callback = function(Value)
-		rockPunchEnabled = Value
-		if Value then
-			if selectedRock and selectedRock ~= "none" then
-				startRockPunch()
-				warn("Rock Auto Punch enabled for " .. selectedRock)
-			else
-				warn("No rock selected!")
-			end
-		else
-			stopRockPunch()
-			warn("Rock Auto Punch disabled")
-		end
-	end
+    Text = "Rock Auto Punch",
+    Default = false,
+    Callback = function(Value)
+        rockPunchEnabled = Value
+        if Value then
+            if selectedRock and selectedRock ~= "none" then
+                startRockPunch()
+                warn("Rock Auto Punch enabled for " .. selectedRock)
+            else
+                warn("No rock selected!")
+            end
+        else
+            stopRockPunch()
+            warn("Rock Auto Punch disabled")
+        end
+    end
 })
 
 -- Respawn handling
 player.CharacterAdded:Connect(function(char)
-	if rockPunchEnabled and selectedRock and selectedRock ~= "none" then
-		task.wait(0.1)
-		startRockPunch()
-	end
+    if rockPunchEnabled and selectedRock and selectedRock ~= "none" then
+        task.wait(0.1)
+        startRockPunch()
+    end
 end)
+
+-- Initialize character
+if player.Character then
+    player.Character:WaitForChild("HumanoidRootPart")
+end
 
 -- Auto Rock Punch
