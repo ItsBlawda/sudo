@@ -191,12 +191,17 @@ end
 
 -- Auto Rock Punch
 local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local backpack = player:WaitForChild("Backpack")
-local TOOL_NAME = "Punch"
-local character
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
--- Rock list (sorted)
+local player = Players.LocalPlayer
+local punchingLoop = nil
+local rockPunchEnabled = false
+local selectedRock = nil
+
+-- Remote
+local guiDamageEvent = ReplicatedStorage:WaitForChild("rEvents"):WaitForChild("guiDamageEvent")
+
+-- Rock list
 local rocks = {
     "Ancient Jungle Rock",
     "Muscle King Mountain",
@@ -206,28 +211,6 @@ local rocks = {
     "none"
 }
 
-local selectedRock = nil
-local punchingLoop = nil
-local rockPunchEnabled = false
-
--- Helper to get Punch tool
-local function getPunchTool()
-	return backpack:FindFirstChild(TOOL_NAME) or (character and character:FindFirstChild(TOOL_NAME))
-end
-
--- Helper to get all BaseParts inside a model
-local function getHitParts(modelName)
-	local model = workspace.machinesFolder:FindFirstChild(modelName)
-	if not model then return {} end
-	local parts = {}
-	for _, part in ipairs(model:GetDescendants()) do
-		if part:IsA("BasePart") then
-			table.insert(parts, part)
-		end
-	end
-	return parts
-end
-
 -- Start punching loop
 local function startRockPunch()
 	if punchingLoop and coroutine.status(punchingLoop) ~= "dead" then
@@ -235,40 +218,30 @@ local function startRockPunch()
 	end
 	punchingLoop = task.spawn(function()
 		while rockPunchEnabled and selectedRock and selectedRock ~= "none" do
-			local tool = getPunchTool()
-			if tool then
-				-- Equip if needed
-				if tool.Parent == backpack and character then
-					character.Humanoid:EquipTool(tool)
-				end
-
-				-- Apply Fast Punch if available
-				if tool:FindFirstChild("attackTime") then
-					tool.attackTime.Value = 0
-				end
-
-				-- Get all hit parts in the selected rock
-				local hitParts = getHitParts(selectedRock)
-				for _, hitPart in ipairs(hitParts) do
+			local rockModel = workspace.machinesFolder:FindFirstChild(selectedRock)
+			if rockModel then
+				local rockPart = rockModel:FindFirstChild("Rock")
+				if rockPart then
 					task.defer(function()
-						tool:Activate() -- punch each part asynchronously
+						-- Fire the remote as if the client punched it
+						firesignal(guiDamageEvent.OnClientEvent, "rockPunch", rockPart)
 					end)
 				end
 			end
-			task.wait(0.01) -- ultra-fast, 10ms auto-clicker
+			task.wait(0.01) -- 10ms loop
 		end
 	end)
 end
 
 -- Stop punching
-local function stopPunching()
+local function stopRockPunch()
 	if punchingLoop then
 		task.cancel(punchingLoop)
 		punchingLoop = nil
 	end
 end
 
--- Dropdown for rock selection
+-- Dropdown for selecting rock
 glitch:Dropdown({
 	Text = "Choose Rock",
 	List = rocks,
@@ -279,7 +252,7 @@ glitch:Dropdown({
 		selectedRock = option
 		warn("Selected rock:", option)
 		if rockPunchEnabled then
-			startRockPunch() -- restart loop on new rock
+			startRockPunch()
 		end
 	end
 })
@@ -298,7 +271,7 @@ glitch:Toggle({
 				warn("No rock selected!")
 			end
 		else
-			stopPunching()
+			stopRockPunch()
 			warn("Rock Auto Punch disabled")
 		end
 	end
@@ -306,14 +279,10 @@ glitch:Toggle({
 
 -- Respawn handling
 player.CharacterAdded:Connect(function(char)
-	character = char
 	if rockPunchEnabled and selectedRock and selectedRock ~= "none" then
 		task.wait(0.1)
 		startRockPunch()
 	end
 end)
 
-if player.Character then
-	character = player.Character
-end
 -- Auto Rock Punch
