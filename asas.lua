@@ -189,30 +189,36 @@ if player.Character then
 end
 -- Fast Punch Toggle
 
--- Auto Rock Punch (Luna-style)
+-- Auto Punch Rock
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 
 -- Remotes
-local muscleEvent = player:WaitForChild("muscleEvent") -- Player punch
-local guiDamageEvent = ReplicatedStorage:WaitForChild("rEvents"):WaitForChild("guiDamageEvent") -- Punch trails & rock punch
+local muscleEvent = player:WaitForChild("muscleEvent")
+local guiDamageEvent = ReplicatedStorage:WaitForChild("rEvents"):WaitForChild("guiDamageEvent")
+
+-- Punch tool
+local TOOL_NAME = "Punch"
+local backpack = player:WaitForChild("Backpack")
+local character = player.Character or player.CharacterAdded:Wait()
 
 -- Rock list
-local rocks = {
-    "Ancient Jungle Rock",
-    "Muscle King Mountain",
-    "Rock OF Legends",
-    "Frozen Rock",
-    "Inferno Rock",
-    "none"
-}
-
+local rocks = {"Ancient Jungle Rock", "Muscle King Mountain", "Rock OF Legends", "Frozen Rock", "Inferno Rock", "none"}
 local selectedRock = nil
 local rockPunchEnabled = false
 local punchingLoop = nil
 
--- Start punching loop
+-- Equip tool helper
+local function equipPunch()
+    local tool = character:FindFirstChild(TOOL_NAME) or backpack:FindFirstChild(TOOL_NAME)
+    if tool and tool.Parent == backpack and character:FindFirstChild("Humanoid") then
+        character.Humanoid:EquipTool(tool)
+    end
+    return character:FindFirstChild(TOOL_NAME)
+end
+
+-- Start rock punching
 local function startRockPunch()
     if punchingLoop and coroutine.status(punchingLoop) ~= "dead" then
         task.cancel(punchingLoop)
@@ -220,32 +226,32 @@ local function startRockPunch()
 
     punchingLoop = task.spawn(function()
         while rockPunchEnabled and selectedRock and selectedRock ~= "none" do
-            local Character = player.Character
-            if Character then
-                local leftTrail = Character:FindFirstChild("LeftHand") and Character.LeftHand:FindFirstChild("handTrail")
-                local rightTrail = Character:FindFirstChild("RightHand") and Character.RightHand:FindFirstChild("handTrail")
+            character = player.Character
+            if character then
+                local tool = equipPunch()
+                local leftTrail = character:FindFirstChild("LeftHand") and character.LeftHand:FindFirstChild("handTrail")
+                local rightTrail = character:FindFirstChild("RightHand") and character.RightHand:FindFirstChild("handTrail")
                 local rockModel = workspace.machinesFolder:FindFirstChild(selectedRock)
                 local rockPart = rockModel and rockModel:FindFirstChild("Rock")
-                
-                if leftTrail and rightTrail and rockPart then
-                    -- Fire player punches
+
+                if tool and leftTrail and rightTrail and rockPart then
+                    -- Activate tool (simulate punch)
+                    tool:Activate()
+
+                    -- Fire remotes
                     muscleEvent:FireServer("punch", "rightHand")
                     muscleEvent:FireServer("punch", "leftHand")
-
-                    -- Fire punch trails for visual effect
                     firesignal(guiDamageEvent.OnClientEvent, "punchTrails", leftTrail, rightTrail, "leftHand")
                     firesignal(guiDamageEvent.OnClientEvent, "punchTrails", leftTrail, rightTrail, "rightHand")
-
-                    -- Fire rock punch
                     firesignal(guiDamageEvent.OnClientEvent, "rockPunch", rockPart, leftTrail, rightTrail, "leftHand")
                 end
             end
-            task.wait(0.01) -- ultra-fast 10ms loop
+            task.wait(0.01) -- 10ms ultra-fast loop
         end
     end)
 end
 
--- Stop punching loop
+-- Stop punching
 local function stopRockPunch()
     if punchingLoop then
         task.cancel(punchingLoop)
@@ -253,7 +259,7 @@ local function stopRockPunch()
     end
 end
 
--- Dropdown to select rock
+-- Dropdown & Toggle
 glitch:Dropdown({
     Text = "Choose Rock",
     List = rocks,
@@ -262,14 +268,12 @@ glitch:Dropdown({
     Flag = "RockChoice",
     Callback = function(option)
         selectedRock = option
-        warn("Selected rock:", option)
         if rockPunchEnabled then
             startRockPunch()
         end
     end
 })
 
--- Toggle for enabling/disabling auto rock punch
 glitch:Toggle({
     Text = "Rock Auto Punch",
     Default = false,
@@ -278,28 +282,22 @@ glitch:Toggle({
         if Value then
             if selectedRock and selectedRock ~= "none" then
                 startRockPunch()
-                warn("Rock Auto Punch enabled for " .. selectedRock)
             else
                 warn("No rock selected!")
             end
         else
             stopRockPunch()
-            warn("Rock Auto Punch disabled")
         end
     end
 })
 
 -- Respawn handling
 player.CharacterAdded:Connect(function(char)
+    character = char
     if rockPunchEnabled and selectedRock and selectedRock ~= "none" then
         task.wait(0.1)
         startRockPunch()
     end
 end)
-
--- Initialize character
-if player.Character then
-    player.Character:WaitForChild("HumanoidRootPart")
-end
 
 -- Auto Rock Punch
