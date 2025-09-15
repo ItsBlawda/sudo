@@ -10,6 +10,10 @@ local Farming = Window:Tab({
     Text = "Farming" 
 })
 
+local Glitch = Window:Tab({
+    Text = "Glitch"
+})
+
 local Rebirth = Window:Tab({ 
     Text = "Rebirth" 
 })
@@ -20,6 +24,15 @@ local farming = Farming:Section({
 
 local rebirth = Rebirth:Section({ 
     Text = "REBIRTH"
+})
+
+local glitch = Glitch:Section({
+    Text = "GLITCH"
+})
+
+local glitch2 = Glitch:Section({
+    Text = "GLITCH 2"
+    Side = "right"
 })
 
 -- Auto Punch
@@ -85,7 +98,7 @@ if player.Character then
 	character = player.Character
 end
 
-Section:Toggle({
+farming:Toggle({
 	Text = "Auto Punch",
 	Default = false,
 	Callback = function(Value)
@@ -132,7 +145,7 @@ local function restoreAttackTime()
 end
 
 -- Fast Punch Toggle
-Section:Toggle({
+farming:Toggle({
 	Text = "Fast Punch",
 	Default = false,
 	Callback = function(Value)
@@ -238,7 +251,7 @@ local function stopPunching()
 end
 
 -- Dropdown for rock selection
-Section:Dropdown({
+glitch:Dropdown({
 	Text = "Choose Rock",
 	List = rocks,
 	Default = "Ancient Jungle Rock",
@@ -254,7 +267,7 @@ Section:Dropdown({
 })
 
 -- Toggle for enabling/disabling punching
-Section:Toggle({
+glitch:Toggle({
 	Text = "Rock Auto Punch",
 	Default = false,
 	Callback = function(Value)
