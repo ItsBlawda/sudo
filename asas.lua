@@ -32,7 +32,7 @@ local glitch = Glitch:Section({
 
 local glitch2 = Glitch:Section({
     Text = "GLITCH 2",
-    Side = "right"
+    Side = "Right"
 })
 
 -- Auto Punch
