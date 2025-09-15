@@ -191,8 +191,8 @@ end
 
 
 
--- AUto Punch Rock
--- Services
+-- Auto Punch Rock
+
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local backpack = player:WaitForChild("Backpack")
@@ -200,17 +200,15 @@ local TOOL_NAME = "Punch"
 
 -- Rock list
 local rocks = {
-    "Ancient Jungle Rock",
     "Muscle King Mountain",
+    "Ancient Jungle Rock",
     "Rock OF Legends",
     "Frozen Rock",
     "Inferno Rock",
     "none"
 }
 
--- Variables
 local selectedRock = nil
-local rockModel = nil
 local autoPunchEnabled = false
 local autoPunchLoop = nil
 local character = player.Character
@@ -225,7 +223,7 @@ local function equipTool(tool)
 end
 
 -- -------------------------
--- Auto Punch (tool-based)
+-- Auto Punch Loop
 -- -------------------------
 local function startAutoPunch()
     if autoPunchLoop and coroutine.status(autoPunchLoop) ~= "dead" then return end
@@ -240,7 +238,7 @@ local function startAutoPunch()
                     tool:Activate()
                 end
             end
-            task.wait(0.01) -- fast punch
+            task.wait(0.01) -- 10ms fast punch
         end
     end)
 end
@@ -254,22 +252,22 @@ local function stopAutoPunch()
 end
 
 -- -------------------------
--- Teleport to rock
+-- Teleport function
 -- -------------------------
-local function teleportToRock()
-    if not selectedRock or selectedRock == "none" then return end
-    local rockModel = workspace.machinesFolder:FindFirstChild(selectedRock)
-    if rockModel and rockModel:FindFirstChild("Rock") then
-        local rockPart = rockModel.Rock
-        local hrp = character and character:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            hrp.CFrame = CFrame.new(
-                rockPart.Position.X,
-                rockPart.Position.Y - (rockPart.Size.Y/2) - 3, -- bottom side
-                rockPart.Position.Z
-            )
-        end
-    end
+local function teleportToRock(rockName)
+    if not rockName or rockName == "none" then return end
+    local rockModel = workspace.machinesFolder:FindFirstChild(rockName)
+    if not rockModel then return end
+
+    local rockPart = rockModel:FindFirstChild("Rock")
+    if not rockPart then return end
+
+    local hrp = character and character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    -- Calculate safe nearby position: bottom side of rock
+    local offset = Vector3.new(0, -rockPart.Size.Y/2 - 3, 0)
+    hrp.CFrame = CFrame.new(rockPart.Position + offset)
 end
 
 -- -------------------------
@@ -278,12 +276,11 @@ end
 glitch:Dropdown({
     Text = "Choose Rock",
     List = rocks,
-    Default = "none",
+    Default = "Muscle King Mountain",
     ChangeTextOnPick = true,
     Flag = "RockChoice",
     Callback = function(option)
         selectedRock = option
-        rockModel = workspace.machinesFolder:FindFirstChild(selectedRock)
         warn("Selected rock:", selectedRock)
     end
 })
@@ -293,9 +290,9 @@ glitch:Toggle({
     Default = false,
     Callback = function(Value)
         autoPunchEnabled = Value
+        character = player.Character
         if Value then
-            character = player.Character
-            teleportToRock()
+            teleportToRock(selectedRock)
             startAutoPunch()
             warn("Auto Punch enabled at rock:", selectedRock)
         else
@@ -312,7 +309,7 @@ player.CharacterAdded:Connect(function(char)
     character = char
     if autoPunchEnabled then
         task.wait(0.1)
-        teleportToRock()
+        teleportToRock(selectedRock)
         startAutoPunch()
     end
 end)
@@ -320,5 +317,4 @@ end)
 if player.Character then
     character = player.Character
 end
-
 -- Auto Rock Punch
