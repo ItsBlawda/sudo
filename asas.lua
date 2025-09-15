@@ -189,8 +189,11 @@ if player.Character then
 end
 -- Fast Punch Toggle
 
--- Auto Rock Punch (Client-side reachable rock)
+
+
+-- AUto Punch Rock
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 
@@ -208,110 +211,119 @@ local rocks = {
     "none"
 }
 
+-- Variables
+local autoPunchEnabled = false
+local rockFollowEnabled = false
 local selectedRock = nil
-local rockPunchEnabled = false
-local punchingLoop = nil
+local rockModel = nil
+local rockOffset = CFrame.new(0, 0, 3)
+local autoPunchLoop = nil
 
--- Make rock client-side reachable
-local function makeRockReachable(rockName)
-    local rockModel = workspace.machinesFolder:FindFirstChild(rockName)
-    if rockModel then
-        local rockPart = rockModel:FindFirstChild("Rock")
-        if rockPart then
-            rockPart.Size = Vector3.new(2,1,1)
-            rockPart.Transparency = 1
-            rockPart.CanCollide = false
-            return rockPart
-        end
-    end
-    return nil
-end
-
--- Start punching loop
-local function startRockPunch()
-    if punchingLoop and coroutine.status(punchingLoop) ~= "dead" then
-        task.cancel(punchingLoop)
-    end
-
-    punchingLoop = task.spawn(function()
-        while rockPunchEnabled and selectedRock and selectedRock ~= "none" do
-            local Character = player.Character
-            if Character then
-                local leftTrail = Character:FindFirstChild("LeftHand") and Character.LeftHand:FindFirstChild("handTrail")
-                local rightTrail = Character:FindFirstChild("RightHand") and Character.RightHand:FindFirstChild("handTrail")
-                local rockPart = makeRockReachable(selectedRock)
-
-                if leftTrail and rightTrail and rockPart then
-                    -- Fire player punches
-                    muscleEvent:FireServer("punch", "rightHand")
-                    muscleEvent:FireServer("punch", "leftHand")
-
-                    -- Fire punch trails
-                    firesignal(guiDamageEvent.OnClientEvent, "punchTrails", leftTrail, rightTrail, "leftHand")
-                    firesignal(guiDamageEvent.OnClientEvent, "punchTrails", leftTrail, rightTrail, "rightHand")
-
-                    -- Fire rock punch
-                    firesignal(guiDamageEvent.OnClientEvent, "rockPunch", rockPart, leftTrail, rightTrail, "leftHand")
-                end
-            end
-            task.wait(0.01)
+-- -------------------------
+-- Auto Punch Loop
+-- -------------------------
+local function startAutoPunch()
+    if autoPunchLoop and coroutine.status(autoPunchLoop) ~= "dead" then return end
+    autoPunchLoop = task.spawn(function()
+        while autoPunchEnabled do
+            muscleEvent:FireServer("punch", "rightHand")
+            muscleEvent:FireServer("punch", "leftHand")
+            task.wait(0.01) -- ultra-fast 10ms
         end
     end)
 end
 
--- Stop punching
-local function stopRockPunch()
-    if punchingLoop then
-        task.cancel(punchingLoop)
-        punchingLoop = nil
+local function stopAutoPunch()
+    autoPunchEnabled = false
+    if autoPunchLoop then
+        task.cancel(autoPunchLoop)
+        autoPunchLoop = nil
     end
 end
 
--- Dropdown for selecting rock
+-- -------------------------
+-- Rock Follow Logic
+-- -------------------------
+local function makeRockReachable()
+    if rockModel and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = player.Character.HumanoidRootPart
+        local rockPart = rockModel:FindFirstChild("Rock")
+        if rockPart then
+            rockPart.Size = Vector3.new(2,1,1)       -- tiny
+            rockPart.Transparency = 1                -- invisible
+            rockPart.CanCollide = false              -- no collisions
+            rockPart.Anchored = true                 -- ignore physics
+            rockPart.Massless = true                 -- lighter, won’t push player
+            rockPart.CFrame = hrp.CFrame * rockOffset
+        end
+    end
+end
+
+RunService.RenderStepped:Connect(function()
+    if rockFollowEnabled and rockModel and selectedRock and selectedRock ~= "none" then
+        makeRockReachable()
+    end
+end)
+
+-- -------------------------
+-- UI Dropdown & Toggle
+-- -------------------------
 glitch:Dropdown({
     Text = "Choose Rock",
     List = rocks,
-    Default = nil,
+    Default = "none",
     ChangeTextOnPick = true,
     Flag = "RockChoice",
     Callback = function(option)
         selectedRock = option
+        rockModel = workspace.machinesFolder:FindFirstChild(selectedRock)
         warn("Selected rock:", selectedRock)
-        if rockPunchEnabled then
-            startRockPunch()
-        end
     end
 })
 
--- Toggle for enabling/disabling Auto Rock Punch
 glitch:Toggle({
-    Text = "Rock Auto Punch",
+    Text = "Attach Rock To Head",
     Default = false,
     Callback = function(Value)
-        rockPunchEnabled = Value
-        if Value then
-            if selectedRock and selectedRock ~= "none" then
-                startRockPunch()
-                warn("Rock Auto Punch enabled for " .. selectedRock)
-            else
-                warn("No rock selected!")
+        rockFollowEnabled = Value
+        if not Value and rockModel then
+            local rockPart = rockModel:FindFirstChild("Rock")
+            if rockPart then
+                rockPart.Size = Vector3.new(5,5,5)   -- reset size
+                rockPart.Transparency = 0
+                rockPart.CanCollide = true
+                rockPart.Anchored = false
+                rockPart.Massless = false
             end
-        else
-            stopRockPunch()
-            warn("Rock Auto Punch disabled")
         end
     end
 })
 
--- Respawn handling
+glitch:Toggle({
+    Text = "Auto Punch",
+    Default = false,
+    Callback = function(Value)
+        autoPunchEnabled = Value
+        if Value then
+            startAutoPunch()
+            warn("Auto Punch enabled")
+        else
+            stopAutoPunch()
+            warn("Auto Punch disabled")
+        end
+    end
+})
+
+-- -------------------------
+-- Handle Respawn
+-- -------------------------
 player.CharacterAdded:Connect(function(char)
-    if rockPunchEnabled and selectedRock and selectedRock ~= "none" then
+    if autoPunchEnabled then
         task.wait(0.1)
-        startRockPunch()
+        startAutoPunch()
     end
 end)
 
--- Initialize
 if player.Character then
     player.Character:WaitForChild("HumanoidRootPart")
 end
