@@ -192,14 +192,11 @@ end
 
 
 -- AUto Punch Rock
+-- Services
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
-
--- Remotes
-local muscleEvent = player:WaitForChild("muscleEvent")
-local guiDamageEvent = ReplicatedStorage:WaitForChild("rEvents"):WaitForChild("guiDamageEvent")
+local backpack = player:WaitForChild("Backpack")
+local TOOL_NAME = "Punch"
 
 -- Rock list
 local rocks = {
@@ -212,23 +209,38 @@ local rocks = {
 }
 
 -- Variables
-local autoPunchEnabled = false
-local rockFollowEnabled = false
 local selectedRock = nil
 local rockModel = nil
-local rockOffset = CFrame.new(0, 0, 3)
+local autoPunchEnabled = false
 local autoPunchLoop = nil
+local character = player.Character
 
 -- -------------------------
--- Auto Punch Loop
+-- Helper: Equip tool
+-- -------------------------
+local function equipTool(tool)
+    if tool and character and character:FindFirstChild("Humanoid") then
+        character.Humanoid:EquipTool(tool)
+    end
+end
+
+-- -------------------------
+-- Auto Punch (tool-based)
 -- -------------------------
 local function startAutoPunch()
     if autoPunchLoop and coroutine.status(autoPunchLoop) ~= "dead" then return end
     autoPunchLoop = task.spawn(function()
         while autoPunchEnabled do
-            muscleEvent:FireServer("punch", "rightHand")
-            muscleEvent:FireServer("punch", "leftHand")
-            task.wait(0.01) -- ultra-fast 10ms
+            if character then
+                local tool = character:FindFirstChild(TOOL_NAME) or backpack:FindFirstChild(TOOL_NAME)
+                if tool and tool.Parent == backpack then
+                    equipTool(tool)
+                end
+                if tool then
+                    tool:Activate()
+                end
+            end
+            task.wait(0.01) -- fast punch
         end
     end)
 end
@@ -242,28 +254,23 @@ local function stopAutoPunch()
 end
 
 -- -------------------------
--- Rock Follow Logic
+-- Teleport to rock
 -- -------------------------
-local function makeRockReachable()
-    if rockModel and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        local hrp = player.Character.HumanoidRootPart
-        local rockPart = rockModel:FindFirstChild("Rock")
-        if rockPart then
-            rockPart.Size = Vector3.new(2,1,1)       -- tiny
-            rockPart.Transparency = 1                -- invisible
-            rockPart.CanCollide = false              -- no collisions
-            rockPart.Anchored = true                 -- ignore physics
-            rockPart.Massless = true                 -- lighter, won’t push player
-            rockPart.CFrame = hrp.CFrame * rockOffset
+local function teleportToRock()
+    if not selectedRock or selectedRock == "none" then return end
+    local rockModel = workspace.machinesFolder:FindFirstChild(selectedRock)
+    if rockModel and rockModel:FindFirstChild("Rock") then
+        local rockPart = rockModel.Rock
+        local hrp = character and character:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            hrp.CFrame = CFrame.new(
+                rockPart.Position.X,
+                rockPart.Position.Y - (rockPart.Size.Y/2) - 3, -- bottom side
+                rockPart.Position.Z
+            )
         end
     end
 end
-
-RunService.RenderStepped:Connect(function()
-    if rockFollowEnabled and rockModel and selectedRock and selectedRock ~= "none" then
-        makeRockReachable()
-    end
-end)
 
 -- -------------------------
 -- UI Dropdown & Toggle
@@ -282,31 +289,15 @@ glitch:Dropdown({
 })
 
 glitch:Toggle({
-    Text = "Attach Rock To Head",
-    Default = false,
-    Callback = function(Value)
-        rockFollowEnabled = Value
-        if not Value and rockModel then
-            local rockPart = rockModel:FindFirstChild("Rock")
-            if rockPart then
-                rockPart.Size = Vector3.new(2,1,1)   -- reset size
-                rockPart.Transparency = 0
-                rockPart.CanCollide = true
-                rockPart.Anchored = false
-                rockPart.Massless = false
-            end
-        end
-    end
-})
-
-glitch:Toggle({
     Text = "Auto Punch",
     Default = false,
     Callback = function(Value)
         autoPunchEnabled = Value
         if Value then
+            character = player.Character
+            teleportToRock()
             startAutoPunch()
-            warn("Auto Punch enabled")
+            warn("Auto Punch enabled at rock:", selectedRock)
         else
             stopAutoPunch()
             warn("Auto Punch disabled")
@@ -318,14 +309,16 @@ glitch:Toggle({
 -- Handle Respawn
 -- -------------------------
 player.CharacterAdded:Connect(function(char)
+    character = char
     if autoPunchEnabled then
         task.wait(0.1)
+        teleportToRock()
         startAutoPunch()
     end
 end)
 
 if player.Character then
-    player.Character:WaitForChild("HumanoidRootPart")
+    character = player.Character
 end
 
 -- Auto Rock Punch
