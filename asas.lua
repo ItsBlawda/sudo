@@ -3335,25 +3335,17 @@ GUI:CreateSection({ --Creates a secton
 })
 
 local glitch = GUI:CreateTab("Glitch", "home") -- Creates a Tab
-local punch = GUI:CreateSection({ --Creates a secton
+GUI:CreateSection({ --Creates a secton
     parent = glitch, 
     text = "Glitch Section"
 })
-local rock = GUI:CreateSection({ --Creates a secton
-    parent = glitch, 
-    text = "Rock Section"
-})
 
 local strength = GUI:CreateTab("Strength", "home") -- Creates a Tab
-local muscle = GUI:CreateSection({ --Creates a secton
+GUI:CreateSection({ --Creates a secton
     parent = strength, 
     text = "Strength Section"
 })
 
-local weight = GUI:CreateSection({ --Creates a secton
-    parent = strength, 
-    text = "Strength Section"
-})
 
 local kill = GUI:CreateTab("Kills", "home") -- Creates a Tab
 GUI:CreateSection({ --Creates a secton
@@ -3441,7 +3433,7 @@ end
 
 
 GUI:CreateToggle({ -- Creates a toggle
-    parent = punch, 
+    parent = glitch, 
     text = "Auto Punch", 
     default = false, 
     callback = function(Value)
@@ -3487,7 +3479,7 @@ local function restoreAttackTime()
 end
 
 GUI:CreateToggle({
-    parent = punch, 
+    parent = glitch, 
     text = "Fast Punch", 
     default = false, 
     callback = function(Value)
@@ -3525,7 +3517,7 @@ end
 ---------------------------------
 
 GUI:CreateToggle({
-    parent = rock, 
+    parent = glitch, 
     text = "Ancient Jungle Rock",  
     default = false, 
     callback = function(Value) 
@@ -3572,7 +3564,7 @@ GUI:CreateToggle({
 })
 
 GUI:CreateToggle({
-    parent = rock, 
+    parent = glitch, 
     text = "Muscle King Rock",  
     default = false, 
     callback = function(Value) 
@@ -3617,7 +3609,7 @@ GUI:CreateToggle({
 })
 
 GUI:CreateToggle({
-    parent = rock, 
+    parent = glitch, 
     text = "Legend Rock",  
     default = false, 
     callback = function(Value) 
@@ -3665,7 +3657,7 @@ GUI:CreateToggle({
 
 
 GUI:CreateToggle({
-    parent = rock, 
+    parent = glitch, 
     text = "Inferno Rock",  
     default = false, 
     callback = function(Value) 
@@ -3862,7 +3854,7 @@ local toggle = false
 local farming = false
 
 GUI:CreateToggle({
-    parent = muscle,
+    parent = strength,
     text = "Auto Weight",
     default = false,
     callback = function(state)
