@@ -3352,9 +3352,21 @@ GUI:CreateSection({ --Creates a secton
     text = "Kill Section"
 })
 
+local teleport = GUI:CreateTab("Teleport", "home") -- Creates a Tab
+GUI:CreateSection({ --Creates a secton
+    parent = teleport, 
+    text = "teleport Section"
+})
 
+GUI:CreateSection({ --Creates a secton
+    parent = teleport, 
+    text = "another Section"
+})
 
-
+GUI:CreateParagraph({ -- Creates a paragraph
+    parent = glitch, 
+    text = "Punch Area"
+})
 
 -- Auto Punch
 local Players = game:GetService("Players")
@@ -3511,6 +3523,11 @@ end
 
 ---------------------------------
 ---------------------------------
+
+GUI:CreateParagraph({ -- Creates a paragraph
+    parent = glitch, 
+    text = "Rocks"
+})
 
 GUI:CreateToggle({
     parent = glitch, 
@@ -3698,25 +3715,8 @@ GUI:CreateToggle({
 })
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+----------------------------------
+----------------------------------
 
 GUI:CreateToggle({
     parent = kill, 
@@ -3853,6 +3853,141 @@ GUI:CreateToggle({
         end
     end
 })
+
+
+------------------------------------
+------------------------------------
+
+GUI:CreateParagraph({
+    parent = glitch,
+    text = "Muscle Legends Farm"
+})
+
+local player = game.Players.LocalPlayer
+local backpack = player:WaitForChild("Backpack")
+local TOOL_NAME = "Punch"
+local RepTime = "repTime"
+
+local toggle = false
+local farming = false
+
+GUI:CreateToggle({
+    parent = strength,
+    text = "Auto Weight",
+    default = false,
+    callback = function(state)
+        toggle = state
+        if toggle and not farming then
+            farming = true
+            task.spawn(function()
+                while toggle do
+                    local tool = backpack:FindFirstChild(TOOL_NAME) or player.Character:FindFirstChild(TOOL_NAME)
+                    if tool then
+                        if tool.Parent ~= player.Character then
+                            tool.Parent = player.Character
+                        end
+                        local rep = tool:FindFirstChild(RepTime)
+                        if rep then rep.Value = 0 end
+                        tool:Activate()
+                    end
+                    task.wait(0.01) -- 10ms auto click
+                end
+                farming = false
+                local tool = backpack:FindFirstChild(TOOL_NAME) or player.Character:FindFirstChild(TOOL_NAME)
+                if tool then
+                    local rep = tool:FindFirstChild(RepTime)
+                    if rep then rep.Value = 1 end
+                end
+            end)
+        end
+    end
+})
+
+player.CharacterAdded:Connect(function(char)
+    char:WaitForChild("Humanoid").Died:Connect(function()
+        task.wait(1)
+        if toggle then
+            local newTool = backpack:FindFirstChild(TOOL_NAME)
+            if newTool then
+                newTool.Parent = player.Character
+            end
+        end
+    end)
+end)
+
+
+GUI:CreateToggle({
+    parent = strength,
+    text = "Teleport Toggle",
+    default = false,
+    callback = function(state)
+        teleportToggle = state
+        if teleportToggle then
+            targetMesh = findMesh()
+            task.spawn(teleportLoop)
+        end
+    end
+})
+
+player.CharacterAdded:Connect(function()
+    if teleportToggle then
+        targetMesh = findMesh()
+        task.wait(1)
+        task.spawn(teleportLoop)
+    end
+end)
+
+
+
+
+----------------------------------------
+----------------------------------------
+
+GUI:CreateParagraph({ -- Creates a paragraph
+    parent = teleport, 
+    text = "Teleport"
+})
+local player = game.Players.LocalPlayer
+local hrp = nil
+
+local targetSize = Vector3.new(82.704, 6.324, 82.7204)
+
+local function findMesh()
+    for _, obj in ipairs(workspace.Meshes["Island Model"]:GetDescendants()) do
+        if obj:IsA("MeshPart") and obj.Size == targetSize then
+            return obj
+        end
+    end
+    return nil
+end
+
+GUI:CreateButton({
+    parent = teleport,
+    text = "TP Muscle King",
+    callback = function()
+        local targetMesh = findMesh()
+        if targetMesh and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            hrp = player.Character.HumanoidRootPart
+            hrp.CFrame = targetMesh.CFrame + Vector3.new(0, 5, 0)
+        end
+    end
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
