@@ -3424,7 +3424,7 @@ end
 
 GUI:CreateToggle({ -- Creates a toggle
     parent = glitch, 
-    text = "Toggle Me", 
+    text = "Auto Punch", 
     default = false, 
     callback = function(Value)
         AutoPunch.enabled = Value
@@ -3469,8 +3469,8 @@ local function restoreAttackTime()
 end
 
 GUI:CreateToggle({
-    parent = main, 
-    text = "Toggle Me", 
+    parent = glitch, 
+    text = "Fast Punch", 
     default = false, 
     callback = function(Value)
         fastPunchEnabled = Value
@@ -3505,68 +3505,102 @@ end
 
 ---------------------------------
 ---------------------------------
----
+
 GUI:CreateToggle({
     parent = glitch, 
-    text = "Ancient Jungle",  
+    text = "Muscle King Rock",  
     default = false, 
     callback = function(Value) 
-        if Value then
-            local player = game.Players.LocalPlayer
-            local character = player.Character or player.CharacterAdded:Wait()
-            local leftHand = character:WaitForChild("LeftHand")
-            local rock = game.Workspace.machinesFolder:FindFirstChild("Ancient Jungle Rock"):FindFirstChild("Rock")
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local leftHand = character:WaitForChild("LeftHand")
+        local rock = game.Workspace.machinesFolder:FindFirstChild("Muscle King Mountain"):FindFirstChild("Rock")
 
-            _G.jungleautorock = true
+        if Value and rock then
+            _G.muscleautorock = true
+
+            rock.Size = Vector3.new(2, 1, 1)
+            rock.Transparency = 1
+            rock.CanCollide = false
+            for _, v in ipairs(rock.rockGui:GetChildren()) do
+                v.Visible = false
+            end
+            if rock:FindFirstChild("rockEmitter") then rock.rockEmitter:Destroy() end
+            if rock:FindFirstChild("hoopParticle") then rock.hoopParticle:Destroy() end
+            if rock:FindFirstChild("lavaParticle") then rock.lavaParticle:Destroy() end
 
             task.spawn(function()
-                while _G.jungleautorock do
-                    if rock then
-                        rock.Size = Vector3.new(2, 1, 1)
-                        rock.Transparency = 1
-                        for _, v in pairs(rock.rockGui:GetChildren()) do
-                            v.Visible = false
-                        end
-                        rock.CanCollide = false
-                        if rock:FindFirstChild("rockEmitter") then
-                            rock.rockEmitter:Destroy()
-                        end
-                        if rock:FindFirstChild("hoopParticle") then
-                            rock.hoopParticle:Destroy()
-                        end
-                        if rock:FindFirstChild("lavaParticle") then
-                            rock.lavaParticle:Destroy()
-                        end
-                        rock.CFrame = leftHand.CFrame
-                    else
-                        warn("Rock not found.")
-                    end
-                    task.wait()
+                while _G.muscleautorock and rock and leftHand.Parent do
+                    rock.CFrame = leftHand.CFrame
+                    task.wait(0.1)
                 end
             end)
-        else
-            local success, result = pcall(function()
-                local rock = game.Workspace.machinesFolder:FindFirstChild("Ancient Jungle Rock"):FindFirstChild("Rock")
-                _G.jungleautorock = false
 
-                if rock then
-                    for _, v in pairs(rock.rockGui:GetChildren()) do
-                        v.Visible = true
-                    end
-                    rock.CanCollide = true
-                    rock.Transparency = 0
-                    rock.CFrame = CFrame.new(rock.originalPosition.Value)
-                    rock.Size = Vector3.new(23.18409538269043, 20.20000648498535, 24.44658088684082)
-                else
-                    warn("Rock not found in Ancient Jungle.")
+        else
+            _G.muscleautorock = false
+            if rock then
+                for _, v in ipairs(rock.rockGui:GetChildren()) do
+                    v.Visible = true
                 end
-            end)
-            if not success then
-                warn("Error turning Ancient Jungle Rock off.")
+                rock.CanCollide = true
+                rock.Transparency = 0
+                rock.CFrame = CFrame.new(rock.originalPosition.Value)
+                rock.Size = Vector3.new(23.18409538269043, 20.20000648498535, 24.44658088684082)
             end
         end
     end
 })
+
+
+
+
+GUI:CreateToggle({
+    parent = glitch, 
+    text = "Ancient Jungle Rock",  
+    default = false, 
+    callback = function(Value) 
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local leftHand = character:WaitForChild("LeftHand")
+        local rock = game.Workspace.machinesFolder:FindFirstChild("Ancient Jungle Rock"):FindFirstChild("Rock")
+
+        if Value and rock then
+            _G.muscleautorock = true
+
+            -- Apply permanent changes once
+            rock.Size = Vector3.new(2, 1, 1)
+            rock.Transparency = 1
+            rock.CanCollide = false
+            for _, v in ipairs(rock.rockGui:GetChildren()) do
+                v.Visible = false
+            end
+            if rock:FindFirstChild("rockEmitter") then rock.rockEmitter:Destroy() end
+            if rock:FindFirstChild("hoopParticle") then rock.hoopParticle:Destroy() end
+            if rock:FindFirstChild("lavaParticle") then rock.lavaParticle:Destroy() end
+
+            -- Only update CFrame, not everything
+            task.spawn(function()
+                while _G.muscleautorock and rock and leftHand.Parent do
+                    rock.CFrame = leftHand.CFrame
+                    task.wait(0.1) -- update 10 times per second (much smoother performance)
+                end
+            end)
+
+        else
+            _G.muscleautorock = false
+            if rock then
+                for _, v in ipairs(rock.rockGui:GetChildren()) do
+                    v.Visible = true
+                end
+                rock.CanCollide = true
+                rock.Transparency = 0
+                rock.CFrame = CFrame.new(rock.originalPosition.Value)
+                rock.Size = Vector3.new(23.18409538269043, 20.20000648498535, 24.44658088684082)
+            end
+        end
+    end
+})
+
 
 
 
