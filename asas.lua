@@ -3346,6 +3346,12 @@ GUI:CreateSection({ --Creates a secton
     text = "Strength Section"
 })
 
+local kill = GUI:CreateTab("Kills", "home") -- Creates a Tab
+GUI:CreateSection({ --Creates a secton
+    parent = kill, 
+    text = "Kill Section"
+})
+
 
 
 
@@ -3508,54 +3514,6 @@ end
 
 GUI:CreateToggle({
     parent = glitch, 
-    text = "Muscle King Rock",  
-    default = false, 
-    callback = function(Value) 
-        local player = game.Players.LocalPlayer
-        local character = player.Character or player.CharacterAdded:Wait()
-        local leftHand = character:WaitForChild("LeftHand")
-        local rock = game.Workspace.machinesFolder:FindFirstChild("Muscle King Mountain"):FindFirstChild("Rock")
-
-        if Value and rock then
-            _G.muscleautorock = true
-
-            rock.Size = Vector3.new(2, 1, 1)
-            rock.Transparency = 1
-            rock.CanCollide = false
-            for _, v in ipairs(rock.rockGui:GetChildren()) do
-                v.Visible = false
-            end
-            if rock:FindFirstChild("rockEmitter") then rock.rockEmitter:Destroy() end
-            if rock:FindFirstChild("hoopParticle") then rock.hoopParticle:Destroy() end
-            if rock:FindFirstChild("lavaParticle") then rock.lavaParticle:Destroy() end
-
-            task.spawn(function()
-                while _G.muscleautorock and rock and leftHand.Parent do
-                    rock.CFrame = leftHand.CFrame
-                    task.wait(0.1)
-                end
-            end)
-
-        else
-            _G.muscleautorock = false
-            if rock then
-                for _, v in ipairs(rock.rockGui:GetChildren()) do
-                    v.Visible = true
-                end
-                rock.CanCollide = true
-                rock.Transparency = 0
-                rock.CFrame = CFrame.new(rock.originalPosition.Value)
-                rock.Size = Vector3.new(23.18409538269043, 20.20000648498535, 24.44658088684082)
-            end
-        end
-    end
-})
-
-
-
-
-GUI:CreateToggle({
-    parent = glitch, 
     text = "Ancient Jungle Rock",  
     default = false, 
     callback = function(Value) 
@@ -3601,6 +3559,143 @@ GUI:CreateToggle({
     end
 })
 
+GUI:CreateToggle({
+    parent = glitch, 
+    text = "Muscle King Rock",  
+    default = false, 
+    callback = function(Value) 
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local leftHand = character:WaitForChild("LeftHand")
+        local rock = game.Workspace.machinesFolder:FindFirstChild("Muscle King Mountain"):FindFirstChild("Rock")
+
+        if Value and rock then
+            _G.muscleautorock = true
+
+            rock.Size = Vector3.new(2, 1, 1)
+            rock.Transparency = 1
+            rock.CanCollide = false
+            for _, v in ipairs(rock.rockGui:GetChildren()) do
+                v.Visible = false
+            end
+            if rock:FindFirstChild("rockEmitter") then rock.rockEmitter:Destroy() end
+            if rock:FindFirstChild("hoopParticle") then rock.hoopParticle:Destroy() end
+            if rock:FindFirstChild("lavaParticle") then rock.lavaParticle:Destroy() end
+
+            task.spawn(function()
+                while _G.muscleautorock and rock and leftHand.Parent do
+                    rock.CFrame = leftHand.CFrame
+                    task.wait(0.1)
+                end
+            end)
+
+        else
+            _G.muscleautorock = false
+            if rock then
+                for _, v in ipairs(rock.rockGui:GetChildren()) do
+                    v.Visible = true
+                end
+                rock.CanCollide = true
+                rock.Transparency = 0
+                rock.CFrame = CFrame.new(rock.originalPosition.Value)
+                rock.Size = Vector3.new(23.18409538269043, 20.20000648498535, 24.44658088684082)
+            end
+        end
+    end
+})
+
+GUI:CreateToggle({
+    parent = glitch, 
+    text = "Legend Rock",  
+    default = false, 
+    callback = function(Value) 
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local leftHand = character:WaitForChild("LeftHand")
+        local rock = game.Workspace.machinesFolder:FindFirstChild("Rock Of Legends"):FindFirstChild("Rock")
+
+        if Value and rock then
+            _G.muscleautorock = true
+
+
+            rock.Size = Vector3.new(2, 1, 1)
+            rock.Transparency = 1
+            rock.CanCollide = false
+            for _, v in ipairs(rock.rockGui:GetChildren()) do
+                v.Visible = false
+            end
+            if rock:FindFirstChild("rockEmitter") then rock.rockEmitter:Destroy() end
+            if rock:FindFirstChild("hoopParticle") then rock.hoopParticle:Destroy() end
+            if rock:FindFirstChild("lavaParticle") then rock.lavaParticle:Destroy() end
+
+
+            task.spawn(function()
+                while _G.muscleautorock and rock and leftHand.Parent do
+                    rock.CFrame = leftHand.CFrame
+                    task.wait(0.1)
+                end
+            end)
+
+        else
+            _G.muscleautorock = false
+            if rock then
+                for _, v in ipairs(rock.rockGui:GetChildren()) do
+                    v.Visible = true
+                end
+                rock.CanCollide = true
+                rock.Transparency = 0
+                rock.CFrame = CFrame.new(rock.originalPosition.Value)
+                rock.Size = Vector3.new(23.18409538269043, 20.20000648498535, 24.44658088684082)
+            end
+        end
+    end
+})
+
+
+GUI:CreateToggle({
+    parent = glitch, 
+    text = "Inferno Rock",  
+    default = false, 
+    callback = function(Value) 
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local leftHand = character:WaitForChild("LeftHand")
+        local rock = game.Workspace.machinesFolder:FindFirstChild("Inferno Rock"):FindFirstChild("Rock")
+
+        if Value and rock then
+            _G.muscleautorock = true
+
+            rock.Size = Vector3.new(2, 1, 1)
+            rock.Transparency = 1
+            rock.CanCollide = false
+            for _, v in ipairs(rock.rockGui:GetChildren()) do
+                v.Visible = false
+            end
+            if rock:FindFirstChild("rockEmitter") then rock.rockEmitter:Destroy() end
+            if rock:FindFirstChild("hoopParticle") then rock.hoopParticle:Destroy() end
+            if rock:FindFirstChild("lavaParticle") then rock.lavaParticle:Destroy() end
+
+            task.spawn(function()
+                while _G.muscleautorock and rock and leftHand.Parent do
+                    rock.CFrame = leftHand.CFrame
+                    task.wait(0.1) 
+                end
+            end)
+
+        else
+            _G.muscleautorock = false
+            if rock then
+                for _, v in ipairs(rock.rockGui:GetChildren()) do
+                    v.Visible = true
+                end
+                rock.CanCollide = true
+                rock.Transparency = 0
+                rock.CFrame = CFrame.new(rock.originalPosition.Value)
+                rock.Size = Vector3.new(23.18409538269043, 20.20000648498535, 24.44658088684082)
+            end
+        end
+    end
+})
 
 
 
@@ -3612,6 +3707,152 @@ GUI:CreateToggle({
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+GUI:CreateToggle({
+    parent = kill, 
+    text = "Auto Kill",  
+    default = false, 
+    callback = function(Value) 
+        local player = game.Players.LocalPlayer
+        local backpack = player:WaitForChild("Backpack")
+        local TOOL_NAME = "Punch"
+        local tool = backpack:FindFirstChild(TOOL_NAME) or player.Character:FindFirstChild(TOOL_NAME)
+        local character = player.Character or player.CharacterAdded:Wait()
+        local leftHand = character:WaitForChild("LeftHand")
+
+        -- store player positions
+        if not _G.savedPositions then
+            _G.savedPositions = {}
+        end
+
+        if Value and tool then
+            _G.autopunch = true
+
+            -- equip punch once
+            if not player.Character:FindFirstChild(TOOL_NAME) then
+                player.Character.Humanoid:EquipTool(tool)
+            end
+
+            task.spawn(function()
+                while _G.autopunch do
+                    for _, target in ipairs(game.Players:GetPlayers()) do
+                        if target ~= player and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                            local hrp = target.Character.HumanoidRootPart
+
+                            -- save their original pos if not already saved
+                            if not _G.savedPositions[target.Name] then
+                                _G.savedPositions[target.Name] = hrp.CFrame
+                            end
+
+                            -- force them to your hand
+                            hrp.CFrame = leftHand.CFrame
+                            tool:Activate()
+                        end
+                    end
+                    task.wait(0.1)
+                end
+            end)
+
+        else
+            -- turn off autopunch
+            _G.autopunch = false
+
+            -- restore all saved player positions
+            for _, target in ipairs(game.Players:GetPlayers()) do
+                if target ~= player and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                    local hrp = target.Character.HumanoidRootPart
+                    local saved = _G.savedPositions[target.Name]
+                    if saved then
+                        hrp.CFrame = saved
+                    end
+                end
+            end
+
+            -- clear memory
+            _G.savedPositions = {}
+        end
+    end
+})
+
+
+GUI:CreateToggle({
+    parent = kill, 
+    text = "Auto Kill Persistent",  
+    default = false, 
+    callback = function(Value) 
+        local player = game.Players.LocalPlayer
+        local backpack = player:WaitForChild("Backpack")
+        local TOOL_NAME = "Punch"
+
+        if Value then _G.autopunch = false end
+
+        if Value then
+            _G.autopunchPersistent = true
+            _G.savedPositions = {}
+            local lastCFrame = nil
+
+            task.spawn(function()
+                while _G.autopunchPersistent do
+                    local character = player.Character
+                    local leftHand
+                    local tool
+
+                    if character and character:FindFirstChild("HumanoidRootPart") then
+                        local hrp = character.HumanoidRootPart
+                        lastCFrame = hrp.CFrame
+                        leftHand = character:FindFirstChild("LeftHand")
+                        tool = character:FindFirstChild(TOOL_NAME) or backpack:FindFirstChild(TOOL_NAME)
+
+                        if tool and not character:FindFirstChild(TOOL_NAME) then
+                            character.Humanoid:EquipTool(tool)
+                        end
+                    end
+
+                    -- If dead, keep using last saved position
+                    local attachCFrame = (leftHand and leftHand.CFrame) or lastCFrame
+
+                    if attachCFrame then
+                        for _, target in ipairs(game.Players:GetPlayers()) do
+                            if target ~= player and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                                local hrp = target.Character.HumanoidRootPart
+                                if not _G.savedPositions[target.Name] then
+                                    _G.savedPositions[target.Name] = hrp.CFrame
+                                end
+                                hrp.CFrame = attachCFrame
+                                if tool then tool:Activate() end
+                            end
+                        end
+                    end
+
+                    task.wait(0.1)
+                end
+            end)
+        else
+            _G.autopunchPersistent = false
+            if _G.savedPositions then
+                for _, target in ipairs(game.Players:GetPlayers()) do
+                    if target ~= player and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                        local saved = _G.savedPositions[target.Name]
+                        if saved then
+                            target.Character.HumanoidRootPart.CFrame = saved
+                        end
+                    end
+                end
+                _G.savedPositions = {}
+            end
+        end
+    end
+})
 
 
 
