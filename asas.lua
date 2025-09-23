@@ -3335,13 +3335,22 @@ GUI:CreateSection({ --Creates a secton
 })
 
 local glitch = GUI:CreateTab("Glitch", "home") -- Creates a Tab
-GUI:CreateSection({ --Creates a secton
+local punch = GUI:CreateSection({ --Creates a secton
     parent = glitch, 
     text = "Glitch Section"
 })
+local rock = GUI:CreateSection({ --Creates a secton
+    parent = glitch, 
+    text = "Rock Section"
+})
 
 local strength = GUI:CreateTab("Strength", "home") -- Creates a Tab
-GUI:CreateSection({ --Creates a secton
+local muscle = GUI:CreateSection({ --Creates a secton
+    parent = strength, 
+    text = "Strength Section"
+})
+
+local weight = GUI:CreateSection({ --Creates a secton
     parent = strength, 
     text = "Strength Section"
 })
@@ -3358,15 +3367,6 @@ GUI:CreateSection({ --Creates a secton
     text = "teleport Section"
 })
 
-GUI:CreateSection({ --Creates a secton
-    parent = teleport, 
-    text = "another Section"
-})
-
-GUI:CreateParagraph({ -- Creates a paragraph
-    parent = glitch, 
-    text = "Punch Area"
-})
 
 -- Auto Punch
 local Players = game:GetService("Players")
@@ -3441,7 +3441,7 @@ end
 
 
 GUI:CreateToggle({ -- Creates a toggle
-    parent = glitch, 
+    parent = punch, 
     text = "Auto Punch", 
     default = false, 
     callback = function(Value)
@@ -3487,7 +3487,7 @@ local function restoreAttackTime()
 end
 
 GUI:CreateToggle({
-    parent = glitch, 
+    parent = punch, 
     text = "Fast Punch", 
     default = false, 
     callback = function(Value)
@@ -3524,13 +3524,8 @@ end
 ---------------------------------
 ---------------------------------
 
-GUI:CreateParagraph({ -- Creates a paragraph
-    parent = glitch, 
-    text = "Rocks"
-})
-
 GUI:CreateToggle({
-    parent = glitch, 
+    parent = rock, 
     text = "Ancient Jungle Rock",  
     default = false, 
     callback = function(Value) 
@@ -3577,7 +3572,7 @@ GUI:CreateToggle({
 })
 
 GUI:CreateToggle({
-    parent = glitch, 
+    parent = rock, 
     text = "Muscle King Rock",  
     default = false, 
     callback = function(Value) 
@@ -3622,7 +3617,7 @@ GUI:CreateToggle({
 })
 
 GUI:CreateToggle({
-    parent = glitch, 
+    parent = rock, 
     text = "Legend Rock",  
     default = false, 
     callback = function(Value) 
@@ -3670,7 +3665,7 @@ GUI:CreateToggle({
 
 
 GUI:CreateToggle({
-    parent = glitch, 
+    parent = rock, 
     text = "Inferno Rock",  
     default = false, 
     callback = function(Value) 
@@ -3858,21 +3853,16 @@ GUI:CreateToggle({
 ------------------------------------
 ------------------------------------
 
-GUI:CreateParagraph({
-    parent = glitch,
-    text = "Muscle Legends Farm"
-})
-
 local player = game.Players.LocalPlayer
 local backpack = player:WaitForChild("Backpack")
-local TOOL_NAME = "Punch"
+local TOOL_NAME = "Weight"
 local RepTime = "repTime"
 
 local toggle = false
 local farming = false
 
 GUI:CreateToggle({
-    parent = strength,
+    parent = muscle,
     text = "Auto Weight",
     default = false,
     callback = function(state)
@@ -3916,68 +3906,12 @@ player.CharacterAdded:Connect(function(char)
 end)
 
 
-GUI:CreateToggle({
-    parent = strength,
-    text = "Teleport Toggle",
-    default = false,
-    callback = function(state)
-        teleportToggle = state
-        if teleportToggle then
-            targetMesh = findMesh()
-            task.spawn(teleportLoop)
-        end
-    end
-})
-
-player.CharacterAdded:Connect(function()
-    if teleportToggle then
-        targetMesh = findMesh()
-        task.wait(1)
-        task.spawn(teleportLoop)
-    end
-end)
 
 
 
 
 ----------------------------------------
 ----------------------------------------
-
-GUI:CreateParagraph({ -- Creates a paragraph
-    parent = teleport, 
-    text = "Teleport"
-})
-local player = game.Players.LocalPlayer
-local hrp = nil
-
-local targetSize = Vector3.new(82.704, 6.324, 82.7204)
-
-local function findMesh()
-    for _, obj in ipairs(workspace.Meshes["Island Model"]:GetDescendants()) do
-        if obj:IsA("MeshPart") and obj.Size == targetSize then
-            return obj
-        end
-    end
-    return nil
-end
-
-GUI:CreateButton({
-    parent = teleport,
-    text = "TP Muscle King",
-    callback = function()
-        local targetMesh = findMesh()
-        if targetMesh and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            hrp = player.Character.HumanoidRootPart
-            hrp.CFrame = targetMesh.CFrame + Vector3.new(0, 5, 0)
-        end
-    end
-})
-
-
-
-
-
-
 
 
 
